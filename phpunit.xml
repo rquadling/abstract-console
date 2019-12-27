@@ -1,0 +1,29 @@
+<phpunit
+        beStrictAboutTestsThatDoNotTestAnything="true"
+        colors="true"
+        columns="max"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        failOnRisky="true"
+        stopOnFailure="false"
+>
+    <php>
+        <ini name="memory_limit" value="-1"/>
+    </php>
+    <testsuites>
+        <testsuite name="RQuadling/AbstractConsole">
+            <directory>./tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">./lib</directory>
+            <exclude>
+                <directory suffix=".php">./tests</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+</phpunit>
