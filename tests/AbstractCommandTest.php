@@ -29,11 +29,11 @@ namespace RQuadlingTests\Console;
 use josegonzalez\Dotenv\Loader;
 use PHPUnit\Framework\TestCase;
 use RQuadling\Console\Abstracts\AbstractApplication;
-use RQuadling\Console\Input\Input;
 use RQuadling\DependencyInjection\ContainerFactory;
 use RQuadlingTests\Console\Fixtures\Commands\Namespaced\NamespacedTestCommand;
 use RQuadlingTests\Console\Fixtures\Commands\Namespaced\SubNamespaced\SubNamespacedTestCommand;
 use RQuadlingTests\Console\Fixtures\Commands\TestCommand;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 class AbstractCommandTest extends TestCase
@@ -49,7 +49,7 @@ class AbstractCommandTest extends TestCase
         $command = ContainerFactory::build()->get(TestCommand::class);
         $this->assertEquals('test-command', $command->getName());
         $this->assertEmpty($command->namespacedTestCommand);
-        $command->execute(new Input(), new ConsoleOutput());
+        $command->execute(new ArgvInput(), new ConsoleOutput());
         $this->assertInstanceOf(NamespacedTestCommand::class, $command->namespacedTestCommand);
     }
 
@@ -58,7 +58,7 @@ class AbstractCommandTest extends TestCase
         $command = ContainerFactory::build()->get(NamespacedTestCommand::class);
         $this->assertEquals('namespaced:namespaced-test-command', $command->getName());
         $this->assertEmpty($command->testCommand);
-        $command->execute(new Input(), new ConsoleOutput());
+        $command->execute(new ArgvInput(), new ConsoleOutput());
         $this->assertInstanceOf(TestCommand::class, $command->testCommand);
     }
 
@@ -68,7 +68,7 @@ class AbstractCommandTest extends TestCase
         $this->assertEquals('namespaced:sub-namespaced:sub-namespaced-test-command', $command->getName());
         $this->assertEmpty($command->testCommand);
         $this->assertEmpty($command->namespacedTestCommand);
-        $command->execute(new Input(), new ConsoleOutput());
+        $command->execute(new ArgvInput(), new ConsoleOutput());
         $this->assertInstanceOf(TestCommand::class, $command->testCommand);
         $this->assertInstanceOf(NamespacedTestCommand::class, $command->namespacedTestCommand);
     }

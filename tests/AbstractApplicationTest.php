@@ -59,7 +59,7 @@ class AbstractApplicationTest extends TestCase
             },
             $commands
         );
-        sort($commandNames);
+        \sort($commandNames);
         $this->assertCount(3, $commands);
         $this->assertEquals(
             [

@@ -31,14 +31,6 @@ class Validation extends \RQuadling\Console\Validation
     /**
      * @return string[]
      */
-    public function validateDependencies(string $rootDirectory): array
-    {
-        return parent::validateDependencies($rootDirectory);
-    }
-
-    /**
-     * @return string[]
-     */
     public function validateCommandsDirectoryAndNamespace(string $rootDirectory): array
     {
         return parent::validateCommandsDirectoryAndNamespace($rootDirectory);

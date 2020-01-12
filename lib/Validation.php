@@ -28,8 +28,6 @@ namespace RQuadling\Console;
 
 use josegonzalez\Dotenv\Loader;
 use RQuadling\Console\Abstracts\AbstractApplication;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use UpdateHelper\UpdateHelper;
 use UpdateHelper\UpdateHelperInterface;
 
@@ -39,60 +37,9 @@ class Validation implements UpdateHelperInterface
     public function check(UpdateHelper $helper)
     {
         $helper->write($this->validateCommandsDirectoryAndNamespace(\dirname($helper->getComposerFilePath())));
-        $helper->write($this->validateDependencies(\dirname($helper->getComposerFilePath())));
     }
 
     // @codeCoverageIgnoreEnd
-
-    protected function validateDependencies(string $rootDirectory)
-    {
-        $diFilename = \sprintf('%s/di.php', $rootDirectory);
-
-        $diConfig = \file_exists($diFilename) ? (include $diFilename ?? []) : [];
-
-        $result = [];
-        if (!\array_key_exists(InputInterface::class, $diConfig)) {
-            $result = \array_merge(
-                $result,
-                [
-                    '    // Symfony Console Input wrapper to allow potential operation via a web based controller',
-                    '    \Symfony\Component\Console\Input\InputInterface::class => function () {',
-                    '        return new \RQuadling\Console\Input\Input(array_get($_SERVER, \'argv\', []));',
-                    '    },',
-                ]
-            );
-        }
-
-        if (!\array_key_exists(OutputInterface::class, $diConfig)) {
-            $result = \array_merge(
-                $result,
-                [
-                    '    // Symfony Console Output wrapper to allow potential operation via a web based controller',
-                    '    \Symfony\Component\Console\Output\OutputInterface::class => function (\Psr\Container\ContainerInterface $c) {',
-                    '        return PHP_SAPI == \'cli\'',
-                    '            ? $c->get(\Symfony\Component\Console\Output\ConsoleOutput::class)',
-                    '            : $c->get(\Symfony\Component\Console\Output\BufferedOutput::class);',
-                    '    },',
-                ]
-            );
-        }
-
-        if ($result) {
-            $result = \array_merge(
-                [
-                    '',
-                    'Add the following to di.php',
-                    '',
-                ],
-                $result,
-                [
-                    '',
-                ]
-            );
-        }
-
-        return $result;
-    }
 
     /**
      * @return string[]

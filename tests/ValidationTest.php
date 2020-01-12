@@ -34,63 +34,6 @@ class ValidationTest extends TestCase
     /** @var Validation */
     private $validator;
 
-    public function provideDependencyValidation()
-    {
-        return [
-            'No di.php' => [
-                __DIR__.'/Fixtures/Nothing',
-                [
-                    '',
-                    'Add the following to di.php',
-                    '',
-                    '    // Symfony Console Input wrapper to allow potential operation via a web based controller',
-                    '    \Symfony\Component\Console\Input\InputInterface::class => function () {',
-                    '        return new \RQuadling\Console\Input\Input(array_get($_SERVER, \'argv\', []));',
-                    '    },',
-                    '    // Symfony Console Output wrapper to allow potential operation via a web based controller',
-                    '    \Symfony\Component\Console\Output\OutputInterface::class => function (\Psr\Container\ContainerInterface $c) {',
-                    '        return PHP_SAPI == \'cli\'',
-                    '            ? $c->get(\Symfony\Component\Console\Output\ConsoleOutput::class)',
-                    '            : $c->get(\Symfony\Component\Console\Output\BufferedOutput::class);',
-                    '    },',
-                    '',
-                ],
-            ],
-            'Input only' => [
-                __DIR__.'/Fixtures/InputOnly',
-                [
-                    '',
-                    'Add the following to di.php',
-                    '',
-                    '    // Symfony Console Output wrapper to allow potential operation via a web based controller',
-                    '    \Symfony\Component\Console\Output\OutputInterface::class => function (\Psr\Container\ContainerInterface $c) {',
-                    '        return PHP_SAPI == \'cli\'',
-                    '            ? $c->get(\Symfony\Component\Console\Output\ConsoleOutput::class)',
-                    '            : $c->get(\Symfony\Component\Console\Output\BufferedOutput::class);',
-                    '    },',
-                    '',
-                ],
-            ],
-            'Output only' => [
-                __DIR__.'/Fixtures/OutputOnly',
-                [
-                    '',
-                    'Add the following to di.php',
-                    '',
-                    '    // Symfony Console Input wrapper to allow potential operation via a web based controller',
-                    '    \Symfony\Component\Console\Input\InputInterface::class => function () {',
-                    '        return new \RQuadling\Console\Input\Input(array_get($_SERVER, \'argv\', []));',
-                    '    },',
-                    '',
-                ],
-            ],
-            'Both' => [
-                __DIR__.'/Fixtures/All',
-                [],
-            ],
-        ];
-    }
-
     public function provideCommandEnvVarValidation()
     {
         return [
@@ -123,16 +66,6 @@ class ValidationTest extends TestCase
     protected function setUp()
     {
         $this->validator = new Validation();
-    }
-
-    /**
-     * @param string[] $expectedMessages
-     *
-     * @dataProvider provideDependencyValidation
-     */
-    public function testDependencyValidation(string $directory, array $expectedMessages)
-    {
-        $this->assertEquals($expectedMessages, $this->validator->validateDependencies($directory));
     }
 
     /**

@@ -48,13 +48,11 @@ abstract class AbstractApplication extends Application
 
     /**
      * @var InputInterface
-     * @Inject
      */
     protected $input;
 
     /**
      * @var OutputInterface
-     * @Inject
      */
     protected $output;
 
@@ -63,14 +61,6 @@ abstract class AbstractApplication extends Application
      * @Inject
      */
     private $container;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function run(InputInterface $input = null, OutputInterface $output = null): int
-    {
-        return parent::run($input ?? $this->input, $output ?? $this->output);
-    }
 
     /**
      * {@inheritdoc}
