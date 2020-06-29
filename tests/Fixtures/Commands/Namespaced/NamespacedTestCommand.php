@@ -39,14 +39,14 @@ class NamespacedTestCommand extends AbstractCommand
      */
     public $testCommand;
 
-    protected function configure($commandName = null)
+    protected function configure($commandName = null): void
     {
         parent::configure($commandName);
 
         $this->setDescription('Sub Namespaced Test Command');
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): ?int
     {
         return parent::execute($input, $output);
     }

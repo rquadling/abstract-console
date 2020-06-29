@@ -31,9 +31,11 @@ use RQuadlingTests\Console\Fixtures\Validation;
 
 class ValidationTest extends TestCase
 {
-    /** @var Validation */
-    private $validator;
+    private Validation $validator;
 
+    /**
+     * @return array<string, array<int, string|array<int, string>>>
+     */
     public function provideCommandEnvVarValidation()
     {
         return [
@@ -63,7 +65,7 @@ class ValidationTest extends TestCase
         ];
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->validator = new Validation();
     }
@@ -73,7 +75,7 @@ class ValidationTest extends TestCase
      *
      * @dataProvider provideCommandEnvVarValidation
      */
-    public function testCommandEnvVarValidation(string $directory, array $expectedMessages)
+    public function testCommandEnvVarValidation(string $directory, array $expectedMessages): void
     {
         $this->assertEquals($expectedMessages, $this->validator->validateCommandsDirectoryAndNamespace($directory));
     }

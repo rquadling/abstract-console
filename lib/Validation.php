@@ -34,7 +34,7 @@ use UpdateHelper\UpdateHelperInterface;
 class Validation implements UpdateHelperInterface
 {
     // @codeCoverageIgnoreStart
-    public function check(UpdateHelper $helper)
+    public function check(UpdateHelper $helper): void
     {
         $helper->write($this->validateCommandsDirectoryAndNamespace(\dirname($helper->getComposerFilePath())));
     }
@@ -42,7 +42,7 @@ class Validation implements UpdateHelperInterface
     // @codeCoverageIgnoreEnd
 
     /**
-     * @return string[]
+     * @return array<int, string>
      */
     protected function validateCommandsDirectoryAndNamespace(string $rootDirectory): array
     {

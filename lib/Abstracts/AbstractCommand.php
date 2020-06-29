@@ -29,9 +29,7 @@ namespace RQuadling\Console\Abstracts;
 use LogicException;
 use RQuadling\DependencyInjection\Traits\DelayedInjectionTrait;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Symfony\Component\Console\Input\Input;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -46,29 +44,23 @@ abstract class AbstractCommand extends SymfonyCommand
 {
     use DelayedInjectionTrait;
 
-    /**
-     * @var InputInterface|Input
-     */
-    protected $input;
+    protected InputInterface $input;
 
-    /**
-     * @var OutputInterface|Output
-     */
-    protected $output;
+    protected OutputInterface $output;
 
     /**
      * A list of all traits used to aid in handling of specific traits requirements.
      *
-     * @var array
+     * @var array<int, string>
      */
     private $usedTraits = [];
 
     /**
      * Configures the current command.
      *
-     * @param null $commandName
+     * @param ?string $commandName
      */
-    protected function configure($commandName = null)
+    protected function configure(string $commandName = null): void
     {
         if (\is_null($commandName)) {
             /*
@@ -138,7 +130,7 @@ abstract class AbstractCommand extends SymfonyCommand
      *
      * @see setCode()
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
         $this->input = $input;
         $this->output = $output;

@@ -38,12 +38,12 @@ use Symfony\Component\Console\Tester\ApplicationTester;
 
 class AbstractApplicationTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         unset($_ENV[AbstractApplication::COMMAND_DIRECTORY_ENVVAR], $_ENV[AbstractApplication::COMMAND_NAMESPACE_ENVVAR]);
     }
 
-    public function testApplicationGetCommandsCorrectly()
+    public function testApplicationGetCommandsCorrectly(): void
     {
         (new Loader(__DIR__.'/Fixtures/Commands/.env'))->parse()->toEnv(true);
         /** @var Application $application */
@@ -103,7 +103,7 @@ Available commands:
         );
     }
 
-    public function testApplicationGetCommandsThrowsExceptionWhenMissingCommandDirectoryEnvVar()
+    public function testApplicationGetCommandsThrowsExceptionWhenMissingCommandDirectoryEnvVar(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage(\sprintf('%s is not defined in your .env file', AbstractApplication::COMMAND_DIRECTORY_ENVVAR));
@@ -113,7 +113,7 @@ Available commands:
         $application->getCommands();
     }
 
-    public function testApplicationGetCommandsThrowsExceptionWhenMissingCommandNamespaceEnvVar()
+    public function testApplicationGetCommandsThrowsExceptionWhenMissingCommandNamespaceEnvVar(): void
     {
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage(\sprintf('%s is not defined in your .env file', AbstractApplication::COMMAND_NAMESPACE_ENVVAR));
@@ -123,7 +123,7 @@ Available commands:
         $application->getCommands();
     }
 
-    public function testApplicationThrowsExceptionForBadCommands()
+    public function testApplicationThrowsExceptionForBadCommands(): void
     {
         (new Loader(__DIR__.'/Fixtures/BadCommand/.env'))->parse()->toEnv(true);
         /** @var Application $application */
@@ -132,8 +132,8 @@ Available commands:
         $application->setCatchExceptions(false);
         $helper = new ApplicationTester($application);
         $helper->run([]);
-        $this->assertContains(
-            'The @var annotation on RQuadlingTests\\Console\\Fixtures\\BadCommand\BadTestCommand::unavailableDependency contains a non existent class "UnavailableDependency". Did you maybe forget to add a "use" statement for this annotation?',
+        $this->assertStringContainsString(
+            'Unable to load RQuadlingTests\\Console\\Fixtures\\BadCommand\\BadTestCommand from',
             $helper->getDisplay()
         );
     }

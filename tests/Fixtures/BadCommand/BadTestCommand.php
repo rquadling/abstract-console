@@ -38,14 +38,14 @@ class BadTestCommand extends AbstractCommand
      */
     public $unavailableDependency;
 
-    protected function configure($commandName = null)
+    protected function configure($commandName = null): void
     {
         parent::configure($commandName);
 
         $this->setDescription('Bad Test Command');
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): ?int
     {
         return parent::execute($input, $output);
     }
