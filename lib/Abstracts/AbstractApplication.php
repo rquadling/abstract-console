@@ -46,26 +46,19 @@ abstract class AbstractApplication extends Application
     const COMMAND_DIRECTORY_ENVVAR = 'COMMAND_DIRECTORY';
     const COMMAND_NAMESPACE_ENVVAR = 'COMMAND_NAMESPACE';
 
-    /**
-     * @var InputInterface
-     */
-    protected $input;
+    protected InputInterface $input;
+
+    protected OutputInterface $output;
 
     /**
-     * @var OutputInterface
-     */
-    protected $output;
-
-    /**
-     * @var Container
      * @Inject
      */
-    private $container;
+    private Container $container;
 
     /**
      * {@inheritdoc}
      */
-    public function doRun(InputInterface $input, OutputInterface $output)
+    public function doRun(InputInterface $input, OutputInterface $output): int
     {
         $this->input = $input;
         $this->output = $output;
@@ -102,7 +95,7 @@ abstract class AbstractApplication extends Application
     /**
      * Get any commands for a single command container.
      *
-     * @return AbstractCommand[]
+     * @return array<int, AbstractCommand>
      */
     protected function getCommands(): array
     {
@@ -118,9 +111,10 @@ abstract class AbstractApplication extends Application
                 )
             )
             as $commandFile) {
-            if ($commandFile->getExtension() === 'php') {
-                $command = $this->getCommandFromFile(\realpath($commandFile));
-                if ($command) {
+            $commandFileRealpath = $commandFile->getRealPath();
+            if ($commandFileRealpath !== false && $commandFile->getExtension() === 'php') {
+                $command = $this->getCommandFromFile($commandFileRealpath);
+                if ($command !== false) {
                     $commands[] = $command;
                 }
             }
@@ -132,9 +126,11 @@ abstract class AbstractApplication extends Application
     /**
      * Tag specific commands' description.
      *
+     * @param class-string<AbstractCommand> $commandClass
+     *
      * @return AbstractCommand|false
      */
-    protected function getCommandFromFileAndClass(string $commandFile, string $commandClass)
+    protected function getCommandFromFileAndClass(?string $commandFile, string $commandClass)
     {
         $command = false;
 
@@ -167,11 +163,13 @@ abstract class AbstractApplication extends Application
     }
 
     /**
+     * @param class-string<AbstractCommand> $commandClass
+     *
      * @return AbstractCommand|false
      */
     protected function getCommandFromClass(string $commandClass)
     {
-        return $this->getCommandFromFileAndClass(Conversion::getFilenameFromClassName($commandClass), $commandClass);
+        return $this->getCommandFromFileAndClass((string)Conversion::getFilenameFromClassName($commandClass), $commandClass);
     }
 
     /**
@@ -179,10 +177,13 @@ abstract class AbstractApplication extends Application
      */
     protected function getCommandFromFile(string $commandFile)
     {
-        return $this->getCommandFromFileAndClass($commandFile, Conversion::getClassNameFromFilename($commandFile));
+        /** @var class-string<AbstractCommand> $commandClass */
+        $commandClass = Conversion::getClassNameFromFilename($commandFile);
+
+        return $this->getCommandFromFileAndClass($commandFile, $commandClass);
     }
 
-    protected function validateEnvironment()
+    protected function validateEnvironment(): void
     {
         foreach ([AbstractApplication::COMMAND_DIRECTORY_ENVVAR, AbstractApplication::COMMAND_NAMESPACE_ENVVAR] as $envVar) {
             if (!\array_key_exists($envVar, $_ENV)) {

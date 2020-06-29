@@ -46,14 +46,14 @@ class SubNamespacedTestCommand extends AbstractCommand
      */
     public $namespacedTestCommand;
 
-    protected function configure($commandName = null)
+    protected function configure($commandName = null): void
     {
         parent::configure($commandName);
 
         $this->setDescription('Namespaced Test Command');
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): ?int
     {
         return parent::execute($input, $output);
     }

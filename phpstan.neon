@@ -2,6 +2,3 @@ parameters:
     ignoreErrors:
         # An expected error as we are testing unavailable dependencies.
         - '#Property RQuadlingTests\\Console\\Fixtures\\BadCommand\\BadTestCommand::\$unavailableDependency has unknown class RQuadlingTests\\Console\\Fixtures\\BadCommand\\UnavailableDependency as its type#'
-
-        # PHPStan does not seem to handle PHPUnit's assertions for instance type validation.
-        - '#Cannot call method getName\(\) on false\|RQuadling\\Console\\Abstracts\\AbstractCommand#'

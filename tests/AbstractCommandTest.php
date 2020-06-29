@@ -38,13 +38,13 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 class AbstractCommandTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         unset($_ENV[AbstractApplication::COMMAND_DIRECTORY_ENVVAR], $_ENV[AbstractApplication::COMMAND_NAMESPACE_ENVVAR]);
         (new Loader(__DIR__.'/Fixtures/Commands/.env'))->parse()->toEnv(true);
     }
 
-    public function testCommandIsCorrectlyNamed()
+    public function testCommandIsCorrectlyNamed(): void
     {
         $command = ContainerFactory::build()->get(TestCommand::class);
         $this->assertEquals('test-command', $command->getName());
@@ -53,7 +53,7 @@ class AbstractCommandTest extends TestCase
         $this->assertInstanceOf(NamespacedTestCommand::class, $command->namespacedTestCommand);
     }
 
-    public function testNamespacedCommandIsCorrectlyNamed()
+    public function testNamespacedCommandIsCorrectlyNamed(): void
     {
         $command = ContainerFactory::build()->get(NamespacedTestCommand::class);
         $this->assertEquals('namespaced:namespaced-test-command', $command->getName());
@@ -62,7 +62,7 @@ class AbstractCommandTest extends TestCase
         $this->assertInstanceOf(TestCommand::class, $command->testCommand);
     }
 
-    public function testSubNamespacedCommandIsCorrectlyNamed()
+    public function testSubNamespacedCommandIsCorrectlyNamed(): void
     {
         $command = ContainerFactory::build()->get(SubNamespacedTestCommand::class);
         $this->assertEquals('namespaced:sub-namespaced:sub-namespaced-test-command', $command->getName());
