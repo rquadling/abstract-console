@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * RQuadling/AbstractConsole
  *
@@ -45,73 +47,7 @@ abstract class AbstractCommand extends SymfonyCommand
     use DelayedInjectionTrait;
 
     protected InputInterface $input;
-
     protected OutputInterface $output;
-
-    /**
-     * A list of all traits used to aid in handling of specific traits requirements.
-     *
-     * @var array<int, string>
-     */
-    private $usedTraits = [];
-
-    /**
-     * Configures the current command.
-     *
-     * @param ?string $commandName
-     */
-    protected function configure(string $commandName = null): void
-    {
-        if (\is_null($commandName)) {
-            /*
-             * Command names are taken from the class name, taking into account the namespace.
-             *
-             * Examples:
-             * A single command like \RQuadling\Console\Commands\UpdateHosts will become update-hosts.
-             * A multiple command package like \RQuadling\Console\Commands\Package\UpdateHosts will become package:update-hosts.
-             *
-             * 1. Take the class name.
-             * 2. Ignore the first n class name parts ($_ENV['COMMAND_NAMESPACE'])
-             * 3. Join the remaining parts with a ':'
-             * 4. Use a regex to get the first part (the package:), from the rest (the command).
-             * 5. Remove the package name if the environment matches the package name.
-             */
-            \preg_match(
-                '`(?P<package>([^:]++:)+|)(?P<command>.++)$`',
-                \implode(
-                    ':',
-                    \array_slice(
-                        \explode('\\', \get_called_class()),
-                        1 + \substr_count(
-                            \trim(
-                                $_ENV[AbstractApplication::COMMAND_NAMESPACE_ENVVAR],
-                                '\\'
-                            ),
-                            '\\'
-                        )
-                    )
-                ),
-                $match
-            );
-
-            $commandName = \sprintf(
-                '%s%s',
-                \implode(
-                    ':',
-                    \array_map(
-                        function ($packagePart) {
-                            return str_to_kebab_case($packagePart);
-                        },
-                        \explode(':', $match['package'])
-                    )
-                ),
-                str_to_kebab_case($match['command'])
-            );
-        }
-        $this->setName($commandName);
-
-        $this->usedTraits = class_uses_recursive(\get_called_class());
-    }
 
     /**
      * Executes the current command.
