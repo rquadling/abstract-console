@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * RQuadling/AbstractConsole
  *
@@ -26,11 +28,12 @@
 
 namespace RQuadlingTests\Console;
 
-use josegonzalez\Dotenv\Loader;
 use PHPUnit\Framework\TestCase;
-use RQuadling\Console\Abstracts\AbstractApplication;
 use RQuadling\DependencyInjection\ContainerFactory;
-use RQuadlingTests\Console\Fixtures\Application\Application;
+use RQuadlingTests\Console\Fixtures\Application\BadApplication;
+use RQuadlingTests\Console\Fixtures\Application\GoodApplication;
+use RQuadlingTests\Console\Fixtures\Application\NoCommandsDirectoryApplication;
+use RQuadlingTests\Console\Fixtures\Application\NoCommandsNamespaceApplication;
 use RQuadlingTests\Console\Fixtures\Commands\Namespaced\SubNamespaced\SubNamespacedTestCommand;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
@@ -38,46 +41,18 @@ use Symfony\Component\Console\Tester\ApplicationTester;
 
 class AbstractApplicationTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        unset($_ENV[AbstractApplication::COMMAND_DIRECTORY_ENVVAR], $_ENV[AbstractApplication::COMMAND_NAMESPACE_ENVVAR]);
-    }
-
     public function testApplicationGetCommandsCorrectly(): void
     {
-        (new Loader(__DIR__.'/Fixtures/Commands/.env'))->parse()->toEnv(true);
-        /** @var Application $application */
-        $application = ContainerFactory::build()->make(Application::class);
-        $this->assertInstanceOf(Application::class, $application);
+        /** @var GoodApplication $application */
+        $application = ContainerFactory::build()->make(GoodApplication::class);
+        $this->assertInstanceOf(GoodApplication::class, $application);
         $application->setAutoExit(false);
         $application->setCatchExceptions(false);
-
-        $commands = $application->getCommands();
-        $commandNames = \array_map(
-            function (Command $command) {
-                return $command->getName();
-            },
-            $commands
-        );
-        \sort($commandNames);
-        $this->assertCount(3, $commands);
-        $this->assertEquals(
-            [
-                'namespaced:namespaced-test-command',
-                'namespaced:sub-namespaced:sub-namespaced-test-command',
-                'test-command',
-            ],
-            $commandNames
-        );
-
-        $commandFromClass = $application->getCommandFromClass(SubNamespacedTestCommand::class);
-        $this->assertInstanceOf(Command::class, $commandFromClass);
-        $this->assertEquals('namespaced:sub-namespaced:sub-namespaced-test-command', $commandFromClass->getName());
 
         $helper = new ApplicationTester($application);
         $helper->run([]);
         $this->assertEquals(
-            'Test application in RQuadlingTests\Console\Fixtures\Application\Application
+            'Testing Good Application 1.2.3
 
 Usage:
   command [options] [arguments]
@@ -101,33 +76,34 @@ Available commands:
 ',
             $helper->getDisplay()
         );
-    }
 
-    public function testApplicationGetCommandsThrowsExceptionWhenMissingCommandDirectoryEnvVar(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage(\sprintf('%s is not defined in your .env file', AbstractApplication::COMMAND_DIRECTORY_ENVVAR));
+        $commands = $application->getCommands();
+        $commandNames = \array_map(
+            function (Command $command) {
+                return $command->getName();
+            },
+            $commands
+        );
+        \sort($commandNames);
+        $this->assertCount(3, $commands);
+        $this->assertEquals(
+            [
+                'namespaced:namespaced-test-command',
+                'namespaced:sub-namespaced:sub-namespaced-test-command',
+                'test-command',
+            ],
+            $commandNames
+        );
 
-        (new Loader(__DIR__.'/Fixtures/NamespaceOnly/.env'))->parse()->toEnv(true);
-        $application = ContainerFactory::build()->make(Application::class);
-        $application->getCommands();
-    }
-
-    public function testApplicationGetCommandsThrowsExceptionWhenMissingCommandNamespaceEnvVar(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage(\sprintf('%s is not defined in your .env file', AbstractApplication::COMMAND_NAMESPACE_ENVVAR));
-
-        (new Loader(__DIR__.'/Fixtures/DirectoryOnly/.env'))->parse()->toEnv(true);
-        $application = ContainerFactory::build()->make(Application::class);
-        $application->getCommands();
+        $commandFromClass = $application->getCommandFromClass(SubNamespacedTestCommand::class);
+        $this->assertInstanceOf(Command::class, $commandFromClass);
+        $this->assertEquals('namespaced:sub-namespaced:sub-namespaced-test-command', $commandFromClass->getName());
     }
 
     public function testApplicationThrowsExceptionForBadCommands(): void
     {
-        (new Loader(__DIR__.'/Fixtures/BadCommand/.env'))->parse()->toEnv(true);
-        /** @var Application $application */
-        $application = ContainerFactory::build()->make(Application::class);
+        /** @var BadApplication $application */
+        $application = ContainerFactory::build()->make(BadApplication::class);
         $application->setAutoExit(false);
         $application->setCatchExceptions(false);
         $helper = new ApplicationTester($application);
@@ -136,5 +112,29 @@ Available commands:
             'Unable to load RQuadlingTests\\Console\\Fixtures\\BadCommand\\BadTestCommand from',
             $helper->getDisplay()
         );
+    }
+
+    public function testApplicationThrowsExceptionForMissingCommandsDirectory(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(\sprintf('COMMANDS_DIRECTORY is not defined in %s', NoCommandsDirectoryApplication::class));
+        /** @var NoCommandsDirectoryApplication $application */
+        $application = ContainerFactory::build()->make(NoCommandsDirectoryApplication::class);
+        $application->setAutoExit(false);
+        $application->setCatchExceptions(false);
+        $helper = new ApplicationTester($application);
+        $helper->run([]);
+    }
+
+    public function testApplicationThrowsExceptionForMissingCommandsNamespace(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(\sprintf('COMMANDS_NAMESPACE is not defined in %s', NoCommandsNamespaceApplication::class));
+        /** @var NoCommandsNamespaceApplication $application */
+        $application = ContainerFactory::build()->make(NoCommandsNamespaceApplication::class);
+        $application->setAutoExit(false);
+        $application->setCatchExceptions(false);
+        $helper = new ApplicationTester($application);
+        $helper->run([]);
     }
 }

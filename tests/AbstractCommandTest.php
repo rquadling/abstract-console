@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * RQuadling/AbstractConsole
  *
@@ -26,50 +28,21 @@
 
 namespace RQuadlingTests\Console;
 
-use josegonzalez\Dotenv\Loader;
 use PHPUnit\Framework\TestCase;
-use RQuadling\Console\Abstracts\AbstractApplication;
 use RQuadling\DependencyInjection\ContainerFactory;
 use RQuadlingTests\Console\Fixtures\Commands\Namespaced\NamespacedTestCommand;
-use RQuadlingTests\Console\Fixtures\Commands\Namespaced\SubNamespaced\SubNamespacedTestCommand;
 use RQuadlingTests\Console\Fixtures\Commands\TestCommand;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 class AbstractCommandTest extends TestCase
 {
-    protected function setUp(): void
+    public function testCommandIsCorrectlyManuallyNamed(): void
     {
-        unset($_ENV[AbstractApplication::COMMAND_DIRECTORY_ENVVAR], $_ENV[AbstractApplication::COMMAND_NAMESPACE_ENVVAR]);
-        (new Loader(__DIR__.'/Fixtures/Commands/.env'))->parse()->toEnv(true);
-    }
-
-    public function testCommandIsCorrectlyNamed(): void
-    {
-        $command = ContainerFactory::build()->get(TestCommand::class);
-        $this->assertEquals('test-command', $command->getName());
+        $command = ContainerFactory::build()->make(TestCommand::class, ['name' => 'manually-named']);
+        $this->assertEquals('manually-named', $command->getName());
         $this->assertEmpty($command->namespacedTestCommand);
         $command->execute(new ArgvInput(), new ConsoleOutput());
-        $this->assertInstanceOf(NamespacedTestCommand::class, $command->namespacedTestCommand);
-    }
-
-    public function testNamespacedCommandIsCorrectlyNamed(): void
-    {
-        $command = ContainerFactory::build()->get(NamespacedTestCommand::class);
-        $this->assertEquals('namespaced:namespaced-test-command', $command->getName());
-        $this->assertEmpty($command->testCommand);
-        $command->execute(new ArgvInput(), new ConsoleOutput());
-        $this->assertInstanceOf(TestCommand::class, $command->testCommand);
-    }
-
-    public function testSubNamespacedCommandIsCorrectlyNamed(): void
-    {
-        $command = ContainerFactory::build()->get(SubNamespacedTestCommand::class);
-        $this->assertEquals('namespaced:sub-namespaced:sub-namespaced-test-command', $command->getName());
-        $this->assertEmpty($command->testCommand);
-        $this->assertEmpty($command->namespacedTestCommand);
-        $command->execute(new ArgvInput(), new ConsoleOutput());
-        $this->assertInstanceOf(TestCommand::class, $command->testCommand);
         $this->assertInstanceOf(NamespacedTestCommand::class, $command->namespacedTestCommand);
     }
 }
