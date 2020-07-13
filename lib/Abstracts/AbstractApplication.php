@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * RQuadling/AbstractConsole
  *
@@ -27,6 +29,7 @@
 namespace RQuadling\Console\Abstracts;
 
 use DI\Container;
+use Phpactor\ClassFileConverter\Domain\ClassName;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RQuadling\ClassFileConversion\Conversion;
@@ -43,11 +46,12 @@ use Throwable;
 
 abstract class AbstractApplication extends Application
 {
-    const COMMAND_DIRECTORY_ENVVAR = 'COMMAND_DIRECTORY';
-    const COMMAND_NAMESPACE_ENVVAR = 'COMMAND_NAMESPACE';
+    const APP_NAME = 'UNKNOWN';
+    const APP_VERSION = 'UNKNOWN';
+    const COMMANDS_DIRECTORY = null;
+    const COMMANDS_NAMESPACE = null;
 
     protected InputInterface $input;
-
     protected OutputInterface $output;
 
     /**
@@ -55,14 +59,27 @@ abstract class AbstractApplication extends Application
      */
     private Container $container;
 
+    public function __construct()
+    {
+        parent::__construct(static::APP_NAME, static::APP_VERSION);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function configureIO(InputInterface $input, OutputInterface $output): void
+    {
+        parent::configureIO($input, $output);
+
+        $this->input = $input;
+        $this->output = $output;
+    }
+
     /**
      * {@inheritdoc}
      */
     public function doRun(InputInterface $input, OutputInterface $output): int
     {
-        $this->input = $input;
-        $this->output = $output;
-
         // Attach the additional output styles.
         $styles = [
             'fire' => ['fg' => 'red', 'bg' => 'yellow', 'options' => ['bold']],
@@ -99,21 +116,27 @@ abstract class AbstractApplication extends Application
      */
     protected function getCommands(): array
     {
-        $this->validateEnvironment();
+        foreach ([
+                     'COMMANDS_DIRECTORY' => static::COMMANDS_DIRECTORY,
+                     'COMMANDS_NAMESPACE' => static::COMMANDS_NAMESPACE,
+                 ] as $name => $value) {
+            if (empty($value)) {
+                throw new RuntimeException(\sprintf('%s is not defined in %s', $name, \get_called_class()));
+            }
+        }
 
         $commands = [];
         /** @var SplFileInfo $commandFile */
         foreach (
             new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator(
-                    Environment::getRoot().'/'.\trim($_ENV[static::COMMAND_DIRECTORY_ENVVAR], '/'),
+                    Environment::getRoot().'/'.\trim(static::COMMANDS_DIRECTORY, '/'),
                     RecursiveDirectoryIterator::SKIP_DOTS
                 )
             )
             as $commandFile) {
-            $commandFileRealpath = $commandFile->getRealPath();
-            if ($commandFileRealpath !== false && $commandFile->getExtension() === 'php') {
-                $command = $this->getCommandFromFile($commandFileRealpath);
+            if ($commandFile->getExtension() === 'php') {
+                $command = $this->getCommandFromFile($commandFile->getPathname());
                 if ($command !== false) {
                     $commands[] = $command;
                 }
@@ -126,21 +149,21 @@ abstract class AbstractApplication extends Application
     /**
      * Tag specific commands' description.
      *
-     * @param class-string<AbstractCommand> $commandClass
-     *
      * @return AbstractCommand|false
      */
-    protected function getCommandFromFileAndClass(?string $commandFile, string $commandClass)
+    protected function getCommandFromFileAndClass(string $commandFile, ClassName $commandClass)
     {
         $command = false;
+        /** @var class-string $commandClassFQN */
+        $commandClassFQN = (string)$commandClass;
 
         try {
-            $reflectedClass = new ReflectionClass($commandClass);
+            $reflectedClass = new ReflectionClass($commandClassFQN);
             // Do not attempt to instantiate abstract classes.
             // Class must be an AbstractCommand.
             if (!$reflectedClass->isAbstract() && $reflectedClass->isSubclassOf(AbstractCommand::class)) {
                 /** @var AbstractCommand $command */
-                $command = $this->container->make($commandClass);
+                $command = $this->container->make($commandClassFQN, ['name' => $this->generateCommandName($commandClass)]);
             }
         } catch (Throwable $exception) {
             /** @var FormatterHelper $formatter */
@@ -169,7 +192,10 @@ abstract class AbstractApplication extends Application
      */
     protected function getCommandFromClass(string $commandClass)
     {
-        return $this->getCommandFromFileAndClass((string)Conversion::getFilenameFromClassName($commandClass), $commandClass);
+        return $this->getCommandFromFileAndClass(
+            (string)Conversion::getFilenameFromClassName($commandClass),
+            ClassName::fromString($commandClass)
+        );
     }
 
     /**
@@ -177,18 +203,61 @@ abstract class AbstractApplication extends Application
      */
     protected function getCommandFromFile(string $commandFile)
     {
-        /** @var class-string<AbstractCommand> $commandClass */
-        $commandClass = Conversion::getClassNameFromFilename($commandFile);
+        $class = Conversion::getClassNameFromFilename($commandFile);
+        if (!\is_null($class)) {
+            return $this->getCommandFromFileAndClass($commandFile, $class);
+        }
 
-        return $this->getCommandFromFileAndClass($commandFile, $commandClass);
+        // @codeCoverageIgnoreStart
+        throw new RuntimeException(\sprintf('Unable to generate command from %s', $commandFile));
+        // @codeCoverageIgnoreEnd
     }
 
-    protected function validateEnvironment(): void
+    protected function generateCommandName(ClassName $commandClass): string
     {
-        foreach ([AbstractApplication::COMMAND_DIRECTORY_ENVVAR, AbstractApplication::COMMAND_NAMESPACE_ENVVAR] as $envVar) {
-            if (!\array_key_exists($envVar, $_ENV)) {
-                throw new RuntimeException(\sprintf('%s is not defined in your .env file', $envVar));
-            }
-        }
+        /*
+         * Command names are taken from the class name, taking into account the namespace.
+         *
+         * Examples:
+         * A single command like \RQuadling\Console\Commands\UpdateHosts will become update-hosts.
+         * A multiple command package like \RQuadling\Console\Commands\Package\UpdateHosts will become package:update-hosts.
+         *
+         * 1. Take the class name.
+         * 2. Ignore the first n class name parts (COMMANDS_NAMESPACE)
+         * 3. Join the remaining parts with a ':'
+         * 4. Use a regex to get the first part (the package:), from the rest (the command).
+         * 5. Remove the package name if the environment matches the package name.
+         */
+        \preg_match(
+            '`(?P<package>([^:]++:)+|)(?P<command>.++)$`',
+            \implode(
+                ':',
+                \array_slice(
+                    \explode('\\', (string)$commandClass),
+                    1 + \substr_count(
+                        \trim(
+                            static::COMMANDS_NAMESPACE,
+                            '\\'
+                        ),
+                        '\\'
+                    )
+                )
+            ),
+            $match
+        );
+
+        return \sprintf(
+            '%s%s',
+            \implode(
+                ':',
+                \array_map(
+                    function ($packagePart) {
+                        return str_to_kebab_case($packagePart);
+                    },
+                    \explode(':', $match['package'])
+                )
+            ),
+            str_to_kebab_case($match['command'])
+        );
     }
 }
