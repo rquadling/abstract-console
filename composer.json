@@ -36,9 +36,6 @@
             "RQuadlingTests\\Console\\": "tests/"
         }
     },
-    "extra": {
-        "update-helper": "RQuadling\\Console\\Validation"
-    },
     "scripts": {
         "cs-lint": "php-cs-fixer fix --diff -vvv --dry-run",
         "cs-fix": "php-cs-fixer fix . -vvv || true",
