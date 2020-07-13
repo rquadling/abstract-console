@@ -13,9 +13,9 @@
     },
     "require": {
         "php": "^7.4",
-        "rquadling/class-file-conversion": "^2.0",
+        "rquadling/class-file-conversion": "^2.0.2",
         "rquadling/dependency-injection": "^2.0",
-        "rquadling/environment": "^2.0",
+        "rquadling/environment": "^2.0.1",
         "rquadling/reflection": "^2.0",
         "symfony/console": "^5.1"
     },
