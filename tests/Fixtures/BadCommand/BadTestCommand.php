@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * RQuadling/AbstractConsole
  *
@@ -38,9 +40,9 @@ class BadTestCommand extends AbstractCommand
      */
     public $unavailableDependency;
 
-    protected function configure($commandName = null): void
+    protected function configure(): void
     {
-        parent::configure($commandName);
+        parent::configure();
 
         $this->setDescription('Bad Test Command');
     }

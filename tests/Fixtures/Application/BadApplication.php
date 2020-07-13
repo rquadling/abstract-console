@@ -26,30 +26,14 @@ declare(strict_types=1);
  *
  */
 
-namespace RQuadlingTests\Console\Fixtures\Commands\Namespaced\SubNamespaced;
+namespace RQuadlingTests\Console\Fixtures\Application;
 
-use RQuadlingTests\Console\Fixtures\Commands\AbstractTestCommand;
-use RQuadlingTests\Console\Fixtures\Commands\Namespaced\NamespacedTestCommand;
-use RQuadlingTests\Console\Fixtures\Commands\TestCommand;
+use RQuadling\Console\Abstracts\AbstractApplication;
 
-class SubNamespacedTestCommand extends AbstractTestCommand
+class BadApplication extends AbstractApplication
 {
-    /**
-     * @var TestCommand
-     * @DelayedInject
-     */
-    public $testCommand;
-
-    /**
-     * @var NamespacedTestCommand
-     * @DelayedInject
-     */
-    public $namespacedTestCommand;
-
-    protected function configure(): void
-    {
-        parent::configure();
-
-        $this->setDescription('Namespaced Test Command');
-    }
+    const APP_NAME = 'Testing Bad Application';
+    const APP_VERSION = '6.6.6';
+    const COMMANDS_DIRECTORY = 'tests/Fixtures/BadCommand';
+    const COMMANDS_NAMESPACE = 'RQuadlingTests\\Console\\Fixtures\\BadCommand';
 }

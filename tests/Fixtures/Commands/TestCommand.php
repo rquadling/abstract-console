@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * RQuadling/AbstractConsole
  *
@@ -26,12 +28,9 @@
 
 namespace RQuadlingTests\Console\Fixtures\Commands;
 
-use RQuadling\Console\Abstracts\AbstractCommand;
 use RQuadlingTests\Console\Fixtures\Commands\Namespaced\NamespacedTestCommand;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class TestCommand extends AbstractCommand
+class TestCommand extends AbstractTestCommand
 {
     /**
      * @var NamespacedTestCommand
@@ -39,15 +38,10 @@ class TestCommand extends AbstractCommand
      */
     public $namespacedTestCommand;
 
-    protected function configure($commandName = null): void
+    protected function configure(): void
     {
-        parent::configure($commandName);
+        parent::configure();
 
         $this->setDescription('Test Command');
-    }
-
-    public function execute(InputInterface $input, OutputInterface $output): ?int
-    {
-        return parent::execute($input, $output);
     }
 }

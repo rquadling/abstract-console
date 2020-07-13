@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * RQuadling/AbstractConsole
  *
@@ -28,22 +30,9 @@ namespace RQuadlingTests\Console\Fixtures\Application;
 
 use RQuadling\Console\Abstracts\AbstractApplication;
 
-class Application extends AbstractApplication
+class NoCommandsDirectoryApplication extends AbstractApplication
 {
-    public function getName()
-    {
-        return 'Test application in '.__CLASS__;
-    }
-
-    /** {@inheritdoc} */
-    public function getCommands(): array
-    {
-        return parent::getCommands();
-    }
-
-    /** {@inheritdoc} */
-    public function getCommandFromClass(string $commandClass)
-    {
-        return parent::getCommandFromClass($commandClass);
-    }
+    const APP_NAME = 'Testing No Commands Directory Application';
+    const APP_VERSION = '4.5.6';
+    const COMMANDS_NAMESPACE = 'RQuadlingTests\\Console\\Fixtures\\BadCommand';
 }

@@ -26,30 +26,16 @@ declare(strict_types=1);
  *
  */
 
-namespace RQuadlingTests\Console\Fixtures\Commands\Namespaced\SubNamespaced;
+namespace RQuadlingTests\Console\Fixtures\Commands;
 
-use RQuadlingTests\Console\Fixtures\Commands\AbstractTestCommand;
-use RQuadlingTests\Console\Fixtures\Commands\Namespaced\NamespacedTestCommand;
-use RQuadlingTests\Console\Fixtures\Commands\TestCommand;
+use RQuadling\Console\Abstracts\AbstractCommand;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
-class SubNamespacedTestCommand extends AbstractTestCommand
+abstract class AbstractTestCommand extends AbstractCommand
 {
-    /**
-     * @var TestCommand
-     * @DelayedInject
-     */
-    public $testCommand;
-
-    /**
-     * @var NamespacedTestCommand
-     * @DelayedInject
-     */
-    public $namespacedTestCommand;
-
-    protected function configure(): void
+    public function execute(InputInterface $input, OutputInterface $output): ?int
     {
-        parent::configure();
-
-        $this->setDescription('Namespaced Test Command');
+        return parent::execute($input, $output);
     }
 }

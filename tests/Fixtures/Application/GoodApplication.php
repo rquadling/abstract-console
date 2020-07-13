@@ -26,30 +26,26 @@ declare(strict_types=1);
  *
  */
 
-namespace RQuadlingTests\Console\Fixtures\Commands\Namespaced\SubNamespaced;
+namespace RQuadlingTests\Console\Fixtures\Application;
 
-use RQuadlingTests\Console\Fixtures\Commands\AbstractTestCommand;
-use RQuadlingTests\Console\Fixtures\Commands\Namespaced\NamespacedTestCommand;
-use RQuadlingTests\Console\Fixtures\Commands\TestCommand;
+use RQuadling\Console\Abstracts\AbstractApplication;
 
-class SubNamespacedTestCommand extends AbstractTestCommand
+class GoodApplication extends AbstractApplication
 {
-    /**
-     * @var TestCommand
-     * @DelayedInject
-     */
-    public $testCommand;
+    const APP_NAME = 'Testing Good Application';
+    const APP_VERSION = '1.2.3';
+    const COMMANDS_DIRECTORY = 'tests/Fixtures/Commands';
+    const COMMANDS_NAMESPACE = 'RQuadlingTests\\Console\\Fixtures\\Commands';
 
-    /**
-     * @var NamespacedTestCommand
-     * @DelayedInject
-     */
-    public $namespacedTestCommand;
-
-    protected function configure(): void
+    /** {@inheritdoc} */
+    public function getCommands(): array
     {
-        parent::configure();
+        return parent::getCommands();
+    }
 
-        $this->setDescription('Namespaced Test Command');
+    /** {@inheritdoc} */
+    public function getCommandFromClass(string $commandClass)
+    {
+        return parent::getCommandFromClass($commandClass);
     }
 }
